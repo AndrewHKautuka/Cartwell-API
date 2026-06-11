@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euo pipefail
+
+cleanup() {
+  echo "Script failed on line $1. You may need to run 'git merge --abort' or resolve conflicts manually."
+}
+trap 'cleanup $LINENO' ERR
+
+BRANCH=$(git symbolic-ref --short HEAD)
+[ "$BRANCH" = "main" ] || { echo "Error: must be on main (currently '$BRANCH')"; exit 1; }
+[ -z "$(git status --porcelain)" ] || { echo "Error: working tree is not clean"; exit 1; }
+MSG="${1:?Usage: git release <commit-message> [tag]}"
+TAG="$2"
+
+git merge --squash dev
+git commit -m "$MSG"
+git merge -s ours dev
+[ -n "$TAG" ] && git tag "$TAG" && echo "Tagged: $TAG"
+echo "Release done."

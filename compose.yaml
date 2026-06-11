@@ -1,0 +1,7 @@
+﻿services:
+  cartwell:
+    image: cartwell
+    build:
+      context: .
+      dockerfile: Cartwell/Dockerfile
+

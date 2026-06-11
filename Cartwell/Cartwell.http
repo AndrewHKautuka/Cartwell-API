@@ -1,0 +1,6 @@
+@Cartwell_HostAddress = http://localhost:5290
+
+GET {{Cartwell_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

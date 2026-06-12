@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Json;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi("v1");
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+	options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+});
 
 var app = builder.Build();
 

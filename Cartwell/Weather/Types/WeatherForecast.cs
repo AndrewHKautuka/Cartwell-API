@@ -2,7 +2,7 @@ using NodaTime;
 
 namespace Cartwell.Weather.Types;
 
-public class WeatherForecast
+public sealed class WeatherForecast
 {
 	public LocalDate Date { get; set; }
 	public int TemperatureC { get; set; }

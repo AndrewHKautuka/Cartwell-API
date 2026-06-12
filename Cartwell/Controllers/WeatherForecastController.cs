@@ -6,7 +6,7 @@ namespace Cartwell.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class WeatherForecastController(IClock clock) : ControllerBase
+public sealed class WeatherForecastController(IClock clock) : ControllerBase
 {
 	private static readonly string[] Summaries =
 	[

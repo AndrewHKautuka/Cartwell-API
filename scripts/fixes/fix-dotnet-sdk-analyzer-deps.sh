@@ -4,10 +4,13 @@
 #
 # Works around a .NET SDK packaging gap (seen with apt-installed SDKs on
 # Debian/Ubuntu-based distros) where Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
-# is missing its System.Composition.AttributedModel.dll dependency. This causes
-# tools that load the SDK's built-in analyzers via MEF (e.g. `jb cleanupcode`,
-# `dotnet format`) to throw FileNotFoundException for analyzers such as
-# CSharpAvoidDuplicateAcceleratorsFixer.
+# is missing its System.Composition.AttributedModel.dll dependency. This has been
+# observed causing `jb cleanupcode` (JetBrains ReSharper CLT) to throw
+# FileNotFoundException when instantiating CSharpAvoidDuplicateAcceleratorsFixer.
+# Note: `dotnet format` does NOT appear to be affected by this — it exits cleanly
+# even when the dependency is missing, likely because it never instantiates this
+# particular code-fix provider (or handles the failure internally). This script
+# targets the `jb cleanupcode` failure mode specifically.
 #
 # What it does:
 #   1. Finds every Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll under the SDK root.

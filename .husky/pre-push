@@ -19,5 +19,16 @@
 ## or put your custom commands -------------------
 #echo 'Husky.Net is awesome!'
 
+while IFS=' ' read -r local_ref local_sha _ _; do
+  if [ "$local_ref" = "refs/heads/main" ]; then
+    parent_count=$(git cat-file -p "$local_sha" | grep -c "^parent ")
+    if [ "$parent_count" -lt 2 ]; then
+      echo "Push blocked: main's tip is not a merge commit."
+      echo "Did you use 'git release' or forget 'git merge -s ours dev'?"
+      exit 1
+    fi
+  fi
+done
+
 echo 'Format Solution'
 dotnet format --no-restore

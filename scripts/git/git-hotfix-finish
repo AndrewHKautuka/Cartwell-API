@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+
+cleanup() {
+  echo "Script failed on line $1. You may need to run 'git merge --abort' or resolve conflicts manually."
+}
+trap 'cleanup $LINENO' ERR
+
+BRANCH=$(git symbolic-ref --short HEAD)
+[[ "$BRANCH" == hotfix/* ]] || { echo "Error: must be on a hotfix/* branch"; exit 1; }
+TAG="$1"  # optional
+
+git checkout main
+git merge --no-ff "$BRANCH"
+[ -n "$TAG" ] && git tag "$TAG" && echo "Tagged: $TAG"
+
+git checkout dev
+git merge main
+
+git branch -d "$BRANCH"
+echo "Hotfix merged to main and back-ported to dev."

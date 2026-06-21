@@ -1,0 +1,115 @@
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+max_line_length = 80
+tab_width = 2
+trim_trailing_whitespace = true
+ij_visual_guides = 80
+ij_wrap_on_typing = true
+
+[*.cs]
+ij_visual_guides = 80, 120
+indent_style = tab
+indent_size = tab
+tab_width = 4
+max_line_length = 120
+
+# Microsoft .NET properties
+csharp_new_line_before_members_in_object_initializers = false
+csharp_preferred_modifier_order = public, private, protected, internal, file, new, static, abstract, virtual, sealed, readonly, override, extern, unsafe, volatile, async, required:suggestion
+csharp_style_namespace_declarations = file_scoped:silent
+csharp_style_prefer_utf8_string_literals = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_expression_bodied_lambdas = when_on_single_line
+csharp_prefer_braces = when_multiline
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+dotnet_naming_style.lower_camel_case_style.capitalization = camel_case
+dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
+dotnet_style_parentheses_in_relational_binary_operators = never_if_unnecessary:none
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+
+# ReSharper properties
+resharper_alignment_tab_fill_style = optimal_fill
+resharper_allow_far_alignment = true
+resharper_align_multiline_extends_list = true
+resharper_align_linq_query = true
+resharper_align_multiline_calls_chain = true
+resharper_align_multiline_array_and_object_initializer = true
+resharper_align_multiline_binary_patterns = true
+resharper_align_multiline_argument = true
+resharper_align_tuple_components = true
+resharper_align_multiline_expression = true
+resharper_align_multiple_declaration = true
+resharper_align_multiline_type_parameter_list = true
+resharper_align_multiline_type_parameter_constraints = true
+resharper_align_multiline_comments = true
+resharper_indent_raw_literal_string = align
+resharper_int_align_nested_ternary = true
+resharper_int_align_comments = true
+resharper_int_align_switch_sections = true
+resharper_int_align_switch_expressions = true
+
+resharper_autodetect_indent_settings = true
+resharper_blank_lines_around_block_case_section = 1
+resharper_blank_lines_around_multiline_case_section = 1
+resharper_csharp_insert_final_newline = true
+resharper_csharp_int_align_comments = true
+resharper_csharp_keep_blank_lines_in_code = 1
+resharper_csharp_keep_blank_lines_in_declarations = 1
+resharper_formatter_off_tag = @formatter:off
+resharper_formatter_on_tag = @formatter:on
+resharper_formatter_tags_enabled = true
+resharper_resx_max_line_length = 2147483647
+resharper_show_autodetect_configure_formatting_tip = false
+resharper_use_indent_from_vs = false
+
+# Best effort wrappers (Aggressive wrapping once past 80)
+resharper_csharp_wrap_arguments_style = chop_if_long
+resharper_csharp_wrap_parameters_style = chop_if_long
+resharper_wrap_lines = true
+
+# ReSharper inspection severities
+resharper_arrange_redundant_parentheses_highlighting = hint
+resharper_arrange_this_qualifier_highlighting = hint
+resharper_arrange_type_member_modifiers_highlighting = hint
+resharper_arrange_type_modifiers_highlighting = hint
+resharper_built_in_type_reference_style_for_member_access_highlighting = hint
+resharper_built_in_type_reference_style_highlighting = hint
+resharper_mvc_action_not_resolved_highlighting = warning
+resharper_mvc_area_not_resolved_highlighting = warning
+resharper_mvc_controller_not_resolved_highlighting = warning
+resharper_mvc_masterpage_not_resolved_highlighting = warning
+resharper_mvc_partial_view_not_resolved_highlighting = warning
+resharper_mvc_template_not_resolved_highlighting = warning
+resharper_mvc_view_component_not_resolved_highlighting = warning
+resharper_mvc_view_component_view_not_resolved_highlighting = warning
+resharper_mvc_view_not_resolved_highlighting = warning
+resharper_razor_assembly_not_resolved_highlighting = warning
+resharper_redundant_base_qualifier_highlighting = warning
+resharper_suggest_var_or_type_built_in_types_highlighting = hint
+resharper_suggest_var_or_type_elsewhere_highlighting = hint
+resharper_suggest_var_or_type_simple_types_highlighting = hint
+resharper_web_config_module_not_resolved_highlighting = warning
+resharper_web_config_type_not_resolved_highlighting = warning
+resharper_web_config_wrong_module_highlighting = warning
+
+# Error Suppression
+dotnet_diagnostic.ca1848.severity = suggestion
+dotnet_diagnostic.ca1515.severity = none
+
+[**/Migrations/**]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none

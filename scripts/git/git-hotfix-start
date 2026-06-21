@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+
+cleanup() {
+  echo "Script failed on line $1. You may need to run 'git merge --abort' or resolve conflicts manually."
+}
+trap 'cleanup $LINENO' ERR
+
+NAME="${1:?Usage: git hotfix-start <name>}"
+git checkout main
+git checkout -b "hotfix/$NAME"
+echo "Branch hotfix/$NAME created from main."

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Cartwell.Common.DocumentTransformers;
 using Microsoft.AspNetCore.Http.Json;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
@@ -24,6 +25,7 @@ builder.Services.AddOpenApi("v1",
 							options =>
 							{
 								options.ConfigureNodaTime();
+								options.AddSchemaTransformer<NodaTimeExamplesSchemaTransformer>();
 							});
 
 builder.Services.Configure<JsonOptions>(options =>

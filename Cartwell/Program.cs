@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Cartwell.Common;
+using Cartwell.Common.Configs;
 using Cartwell.Common.DocumentTransformers;
 using Microsoft.AspNetCore.Http.Json;
 using NodaTime;
@@ -32,6 +34,11 @@ builder.Services.Configure<JsonOptions>(options =>
 {
 	options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+});
+
+builder.Services.AddDbContext<CartwellDbContext>(options =>
+{
+	options.UseConfiguredDbContext(builder.Configuration);
 });
 
 var app = builder.Build();

@@ -16,3 +16,15 @@ Verify that all usages of NodaTime types are correct within the domain of discou
 - Clock dependency patterns spreading to new components without verification
 
 It is probably worthwhile to create unit tests concerning the above (or ensure that integration and end-to-end tests verify correct handling of them).
+
+## 2. Two Separate JSON Options Registrations
+
+There are two distinct `JsonOptions` registrations in `Program.cs`:
+- `AddControllers().AddJsonOptions(...)` — NodaTime serialization for MVC controller responses
+- `Configure<JsonOptions>(...)` — naming policy and enum converters, also covering `[FromQuery]` binding
+
+These serve different purposes and must be kept consistent as new types are introduced.
+
+**Conventions to maintain**:
+- Any new NodaTime type introduced to the domain should be verified to serialize/deserialize correctly under both registrations
+- The `Configure<JsonOptions>` registration is not a duplicate — it intentionally covers query binding scenarios that `AddControllers().AddJsonOptions` does not

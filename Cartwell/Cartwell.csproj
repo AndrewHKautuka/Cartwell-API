@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <OpenApiDocumentsDirectory>./.openapi/</OpenApiDocumentsDirectory>
+    <UserSecretsId>37ec232d-f2c8-416c-b343-e6b14dd58ec3</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

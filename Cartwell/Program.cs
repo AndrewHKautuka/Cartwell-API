@@ -11,6 +11,8 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var primaryConnectionString = builder.Configuration.GetConnectionString("Primary");
+
 // Add services to the container.
 // Singletons
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);
@@ -38,7 +40,7 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddDbContext<CartwellDbContext>(options =>
 {
-	options.UseConfiguredDbContext(builder.Configuration);
+	options.UseConfiguredDbContext(primaryConnectionString);
 });
 
 var app = builder.Build();

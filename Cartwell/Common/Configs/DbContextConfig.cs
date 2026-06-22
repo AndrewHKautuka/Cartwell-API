@@ -7,22 +7,20 @@ public static class DbContextConfig
 {
 	public static DbContextOptionsBuilder<TContext> UseConfiguredDbContext<TContext>(
 		DbContextOptionsBuilder<TContext> builder,
-		IConfiguration configuration) where TContext : DbContext
+		string? connectionString) where TContext : DbContext
 	{
-		return builder.UseNpgsql(configuration.GetConnectionString("Primary"),
-								 o => o.UseNpgsqlConfig());
+		return builder.UseNpgsql(connectionString, o => o.UseNpgsqlConfig());
 	}
 
 	public static DbContextOptionsBuilder UseConfiguredDbContext(
 		this DbContextOptionsBuilder builder,
-		IConfiguration configuration)
+		string? connectionString)
 	{
-		return builder.UseNpgsql(configuration.GetConnectionString("Primary"),
-								 o => o.UseNpgsqlConfig());
+		return builder.UseNpgsql(connectionString, o => o.UseNpgsqlConfig());
 	}
 
-	private static NpgsqlDbContextOptionsBuilder UseNpgsqlConfig(this NpgsqlDbContextOptionsBuilder builder)
+	private static void UseNpgsqlConfig(this NpgsqlDbContextOptionsBuilder builder)
 	{
-		return builder.UseNodaTime();
+		builder.UseNodaTime();
 	}
 }

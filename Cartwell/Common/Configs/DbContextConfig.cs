@@ -1,3 +1,4 @@
+using Laraue.EfCoreTriggers.PostgreSql.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
@@ -9,14 +10,16 @@ public static class DbContextConfig
 		DbContextOptionsBuilder<TContext> builder,
 		string? connectionString) where TContext : DbContext
 	{
-		return builder.UseNpgsql(connectionString, o => o.UseNpgsqlConfig());
+		return builder.UseNpgsql(connectionString, o => o.UseNpgsqlConfig())
+					  .UsePostgreSqlTriggers();
 	}
 
 	public static DbContextOptionsBuilder UseConfiguredDbContext(
 		this DbContextOptionsBuilder builder,
 		string? connectionString)
 	{
-		return builder.UseNpgsql(connectionString, o => o.UseNpgsqlConfig());
+		return builder.UseNpgsql(connectionString, o => o.UseNpgsqlConfig())
+					  .UsePostgreSqlTriggers();
 	}
 
 	private static void UseNpgsqlConfig(this NpgsqlDbContextOptionsBuilder builder)

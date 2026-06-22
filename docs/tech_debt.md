@@ -47,7 +47,7 @@ See `docs/logging_best_practices.md` for the full pattern, before/after examples
 
 `CreatedAt` and `UpdatedAt` are infrastructure-managed fields and must never be assigned by application code.
 
-- `CreatedAt` is set by the database via `DEFAULT CURRENT_TIMESTAMP` on insert (`ValueGeneratedOnAdd`). It is `init`-only on the interface to prevent post-construction mutation, but no database-level trigger enforces immutability — if application code bypasses EF (raw SQL, bulk insert libraries, seeds) it can still overwrite it. A `BEFORE UPDATE` trigger that resets `created_at` to its existing value is the correct guard and should be added when trigger coverage is reviewed.
+- `CreatedAt` is set by the database via `DEFAULT CURRENT_TIMESTAMP` on insert (`ValueGeneratedOnAdd`). It is `init`-only on the interface to prevent post-construction mutation. A Laraue `BeforeUpdate` trigger that raises an exception if `created_at` changes is the enforcement mechanism and should be added to `EntityConfig` once the first entity table exists.
 - `UpdatedAt` is stamped by `StampTimestamps.StampUpdateTimestamps` in the `SaveChanges`/`SaveChangesAsync` overrides. Do not assign it directly in entity code or command handlers — doing so will be silently overwritten on the next save anyway, but is misleading and error-prone.
 
 **Conventions to maintain**:

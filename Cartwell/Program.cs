@@ -18,6 +18,9 @@ var isBuildTimeOpenApiGeneration = Assembly.GetEntryAssembly()?.GetName().Name =
 
 var primaryConnectionString = builder.Configuration.GetConnectionString("Primary");
 
+// Static Configs
+LaraueTriggerConfig.ConfigureNamingStrategy();
+
 // Add services to the container.
 // Singletons
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);

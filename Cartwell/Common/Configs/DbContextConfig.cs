@@ -24,6 +24,7 @@ public static class DbContextConfig
 
 	private static void UseNpgsqlConfig(this NpgsqlDbContextOptionsBuilder builder)
 	{
-		builder.UseNodaTime();
+		builder.UseNodaTime()
+			   .UseNetTopologySuite();
 	}
 }

@@ -95,5 +95,5 @@ The project uses several configuration mechanisms that serve different purposes 
 ### Concerns to watch
 
 - The connection string lives in User Secrets locally but must be injected as an environment variable in production. Ensure `Program.cs` always reads it via `IConfiguration` and never has a hardcoded fallback.
-- `.env` and User Secrets are entirely separate — the connection string in User Secrets is for the app process; the password in `.env` is for the Docker Compose database container. They must be kept consistent manually. If the password in `.env` changes, the User Secrets connection string must also be updated.
+- `.env` and User Secrets are entirely separate — the connection string in User Secrets is for the app process; the password in `.env` is for the Docker Compose database container. They must be kept consistent manually. If the password in `.env` changes, the User Secrets connection string must also be updated. The same applies to `POSTGRES_PORT` — if the host port is changed in `.env`, the port in the User Secrets connection string must match.
 - As the project grows (external APIs, email providers, payment gateways), each new secret needs a `secrets.example.json` entry and a corresponding User Secrets entry for local dev — establish this as the convention from the first addition.

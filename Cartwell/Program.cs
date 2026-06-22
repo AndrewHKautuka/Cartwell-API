@@ -33,7 +33,9 @@ if (!isBuildTimeOpenApiGeneration)
 {
 	healthChecksBuilder.AddNpgSql(primaryConnectionString!,
 								  name: "postgresql",
-								  tags: ["db", "postgres", "ready"]);
+								  tags: ["db", "postgres", "ready"])
+					   .AddDbContextCheck<CartwellDbContext>("cartwell-dbcontext",
+															 tags: ["db", "ef", "ready"]);
 
 	builder.Services.AddDbContext<CartwellDbContext>(options =>
 	{

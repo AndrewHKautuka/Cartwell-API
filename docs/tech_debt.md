@@ -42,3 +42,19 @@ The codebase uses .NET's LoggerMessage source generator pattern for high-perform
 - Dynamic log level usage (omitting `Level` from the attribute) requires extra care to ensure the `LogLevel` parameter is always passed correctly at call sites
 
 See `docs/logging_best_practices.md` for the full pattern, before/after examples, and EventId conventions.
+
+## 4. Timestamp Fields — Must Never Be Set Manually
+
+`CreatedAt` and `UpdatedAt` are infrastructure-managed fields and must never be assigned by application code.
+
+- `CreatedAt` is set by the database via `DEFAULT CURRENT_TIMESTAMP` on insert (`ValueGeneratedOnAdd`). It is `init`-only on the interface to prevent post-construction mutation, but no database-level trigger enforces immutability — if application code bypasses EF (raw SQL, bulk insert libraries, seeds) it can still overwrite it. A `BEFORE UPDATE` trigger that resets `created_at` to its existing value is the correct guard and should be added when trigger coverage is reviewed.
+- `UpdatedAt` is stamped by `StampTimestamps.StampUpdateTimestamps` in the `SaveChanges`/`SaveChangesAsync` overrides. Do not assign it directly in entity code or command handlers — doing so will be silently overwritten on the next save anyway, but is misleading and error-prone.
+
+**Conventions to maintain**:
+- Never set `CreatedAt` in object initialisers, constructors, or command handlers
+- Never set `UpdatedAt` outside of `StampTimestamps`
+- Any bulk-operation path (e.g. `ExecuteUpdateAsync`, raw SQL, EF's `BulkExtensions` if added later) bypasses `SaveChanges` overrides and therefore bypasses `UpdatedAt` stamping — handle explicitly in those paths
+
+## 5. HealthChecks UI — In-Memory Storage
+
+`AddInMemoryStorage()` is used for the HealthChecks UI backing store, meaning history is lost on every restart. This is intentional for the MVP. Replace with a PostgreSQL-backed store (`AddPostgreSqlStorage`) once the schema is stable and operational visibility becomes a requirement.

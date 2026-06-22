@@ -7,35 +7,38 @@ namespace Cartwell.Common.Configs;
 
 public static class EntityConfig
 {
-	public static void ApplyEntityTimestamps(this ModelBuilder modelBuilder)
+	extension(ModelBuilder modelBuilder)
 	{
-		modelBuilder.Model.GetEntityTypes()
-					.Where(e => typeof(ICreateTimestampEntity).IsAssignableFrom(e.ClrType))
-					.Select(entityType => entityType.ClrType)
-					.ToList()
-					.ForEach(clrType =>
-					{
-						modelBuilder.Entity(clrType)
-									.Property(nameof(ICreateTimestampEntity.CreatedAt))
-									.HasDefaultValueSql("CURRENT_TIMESTAMP")
-									.ValueGeneratedOnAdd();
-					});
+		public void ApplyEntityTimestamps()
+		{
+			modelBuilder.Model.GetEntityTypes()
+						.Where(e => typeof(ICreateTimestampEntity).IsAssignableFrom(e.ClrType))
+						.Select(entityType => entityType.ClrType)
+						.ToList()
+						.ForEach(clrType =>
+						{
+							modelBuilder.Entity(clrType)
+										.Property(nameof(ICreateTimestampEntity.CreatedAt))
+										.HasDefaultValueSql("CURRENT_TIMESTAMP")
+										.ValueGeneratedOnAdd();
+						});
 
-		modelBuilder.Model.GetEntityTypes()
-					.Where(e => typeof(IUpdateTimestampEntity).IsAssignableFrom(e.ClrType))
-					.Select(entityType => entityType.ClrType)
-					.ToList()
-					.ForEach(clrType =>
-					{
-						modelBuilder.Entity(clrType)
-									.Property(nameof(IUpdateTimestampEntity.UpdatedAt))
-									.HasDefaultValueSql("CURRENT_TIMESTAMP")
-									.ValueGeneratedOnAddOrUpdate();
-					});
-	}
+			modelBuilder.Model.GetEntityTypes()
+						.Where(e => typeof(IUpdateTimestampEntity).IsAssignableFrom(e.ClrType))
+						.Select(entityType => entityType.ClrType)
+						.ToList()
+						.ForEach(clrType =>
+						{
+							modelBuilder.Entity(clrType)
+										.Property(nameof(IUpdateTimestampEntity.UpdatedAt))
+										.HasDefaultValueSql("CURRENT_TIMESTAMP")
+										.ValueGeneratedOnAddOrUpdate();
+						});
+		}
 
-	public static void ConfigureCartwellTriggers(this ModelBuilder modelBuilder)
-	{
-		modelBuilder.AddGenericTrigger(new CreatedAtImmutabilityTrigger());
+		public void ConfigureCartwellTriggers()
+		{
+			modelBuilder.AddGenericTrigger(new CreatedAtImmutabilityTrigger());
+		}
 	}
 }

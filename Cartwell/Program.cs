@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Cartwell.Common;
 using Cartwell.Common.Configs;
 using Cartwell.Common.DocumentTransformers;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Json;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
@@ -23,7 +24,11 @@ builder.Services.AddControllers()
 		   options.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 	   });
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+	   .AddNpgSql(primaryConnectionString!,
+				  name: "postgresql",
+				  tags: ["db", "postgres", "ready"]);
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi("v1",
 							options =>
@@ -66,6 +71,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health",
+					new HealthCheckOptions
+					{
+						Predicate = _ => false // no dependency checks, just "is the process up"
+					});
+
+app.MapHealthChecks("/health/ready",
+					new HealthCheckOptions
+					{
+						Predicate = check => check.Tags.Contains("ready")
+					});
 
 await app.RunAsync();

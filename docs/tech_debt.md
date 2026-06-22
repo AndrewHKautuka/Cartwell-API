@@ -28,3 +28,17 @@ These serve different purposes and must be kept consistent as new types are intr
 **Conventions to maintain**:
 - Any new NodaTime type introduced to the domain should be verified to serialize/deserialize correctly under both registrations
 - The `Configure<JsonOptions>` registration is not a duplicate — it intentionally covers query binding scenarios that `AddControllers().AddJsonOptions` does not
+
+## 3. Logging — LoggerMessage Source Generator Adoption
+
+The codebase uses .NET's LoggerMessage source generator pattern for high-performance logging. Drift from this pattern introduces CA1848 and CA1873 diagnostics and degrades runtime performance.
+
+**Concerns/Considerations**:
+- Direct `ILogger` extension method calls (`LogDebug`, `LogInformation`, etc.) that have not been migrated to `[LoggerMessage]`-attributed partial methods — each such call boxes value types, re-parses the message template, and allocates on every invocation (CA1848)
+- Method calls or complex expressions (e.g. `string.Join`, LINQ, helper methods) passed directly as logging arguments are evaluated unconditionally, even when the log level is disabled (CA1873)
+- String interpolation in log messages bypasses structured logging entirely and should be replaced with named placeholders
+- EventId collisions: EventIds must be unique across the solution. As new log events are added, duplicate IDs may be introduced if the convention is not enforced — consider a central EventId registry or a CI check
+- `[LoggerMessage]` partial classes or methods missing the `partial` keyword will fail to compile with a non-obvious error
+- Dynamic log level usage (omitting `Level` from the attribute) requires extra care to ensure the `LogLevel` parameter is always passed correctly at call sites
+
+See `docs/logging_best_practices.md` for the full pattern, before/after examples, and EventId conventions.

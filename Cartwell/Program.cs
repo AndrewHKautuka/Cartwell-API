@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cartwell.Common;
@@ -12,6 +13,8 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var isBuildTimeOpenApiGeneration = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+
 var primaryConnectionString = builder.Configuration.GetConnectionString("Primary");
 
 // Add services to the container.
@@ -24,10 +27,19 @@ builder.Services.AddControllers()
 		   options.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 	   });
 
-builder.Services.AddHealthChecks()
-	   .AddNpgSql(primaryConnectionString!,
-				  name: "postgresql",
-				  tags: ["db", "postgres", "ready"]);
+var healthChecksBuilder = builder.Services.AddHealthChecks();
+
+if (!isBuildTimeOpenApiGeneration)
+{
+	healthChecksBuilder.AddNpgSql(primaryConnectionString!,
+								  name: "postgresql",
+								  tags: ["db", "postgres", "ready"]);
+
+	builder.Services.AddDbContext<CartwellDbContext>(options =>
+	{
+		options.UseConfiguredDbContext(primaryConnectionString);
+	});
+}
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi("v1",
@@ -41,11 +53,6 @@ builder.Services.Configure<JsonOptions>(options =>
 {
 	options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
-});
-
-builder.Services.AddDbContext<CartwellDbContext>(options =>
-{
-	options.UseConfiguredDbContext(primaryConnectionString);
 });
 
 var app = builder.Build();

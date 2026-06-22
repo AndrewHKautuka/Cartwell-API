@@ -58,3 +58,42 @@ See `docs/logging_best_practices.md` for the full pattern, before/after examples
 ## 5. HealthChecks UI — In-Memory Storage
 
 `AddInMemoryStorage()` is used for the HealthChecks UI backing store, meaning history is lost on every restart. This is intentional for the MVP. Replace with a PostgreSQL-backed store (`AddPostgreSqlStorage`) once the schema is stable and operational visibility becomes a requirement.
+
+## 6. Configuration — What Goes Where
+
+The project uses several configuration mechanisms that serve different purposes and must not be conflated.
+
+### The mechanisms
+
+**`appsettings.json`** — committed to VCS. Contains non-sensitive defaults that are the same everywhere: log levels, health check evaluation intervals, OpenAPI document settings. Never put secrets or environment-specific values here.
+
+**`appsettings.Development.json`** — committed to VCS. Overrides for the `Development` environment only. Can hold non-sensitive dev-specific values (e.g. relaxed log levels, feature flags). Still no secrets.
+
+**User Secrets (`secrets.json`)** — stored outside the repo at `~/.microsoft/usersecrets/<UserSecretsId>/secrets.json`. The `UserSecretsId` in `Cartwell.csproj` links the project to this file. Used for local developer secrets (connection strings, API keys) that must never be committed. Only active in `Development` environment. Managed via `dotnet user-secrets set "Key" "Value"` or by editing the file directly. `secrets.example.json` in the repo documents the expected shape without real values.
+
+**`.env`** — used by Docker Compose only. Not read by the ASP.NET Core configuration system at all. Provides values for `${VAR}` substitutions in `compose.yaml`. Should be gitignored; a `.env.example` with placeholder values should be committed instead. Currently only `POSTGRES_PASSWORD` is required (`:?` syntax); `POSTGRES_USER` and `POSTGRES_DB` have defaults and are optional.
+
+**Environment variables** — the ASP.NET Core configuration system reads environment variables at runtime with higher priority than `appsettings.json`. Used in production and CI where secrets managers or orchestrators (Docker, Kubernetes) inject values directly. Connection strings follow the double-underscore convention: `ConnectionStrings__Primary` maps to `ConnectionStrings:Primary`.
+
+### Priority order (highest to lowest, Development)
+
+1. Environment variables
+2. User Secrets
+3. `appsettings.Development.json`
+4. `appsettings.json`
+
+### What goes where — quick reference
+
+| Value | Mechanism |
+|---|---|
+| Log levels, health check config, OpenAPI settings | `appsettings.json` |
+| Dev-only feature flags, relaxed log levels | `appsettings.Development.json` |
+| Local DB connection string, local API keys | User Secrets |
+| Docker Compose DB credentials | `.env` (gitignored) |
+| Production secrets, CI secrets | Environment variables / secrets manager |
+
+### Concerns to watch
+
+- The connection string lives in User Secrets locally but must be injected as an environment variable in production. Ensure `Program.cs` always reads it via `IConfiguration` and never has a hardcoded fallback.
+- `.env` and User Secrets are entirely separate — the connection string in User Secrets is for the app process; the password in `.env` is for the Docker Compose database container. They must be kept consistent manually. If the password in `.env` changes, the User Secrets connection string must also be updated.
+- As the project grows (external APIs, email providers, payment gateways), each new secret needs a `secrets.example.json` entry and a corresponding User Secrets entry for local dev — establish this as the convention from the first addition.

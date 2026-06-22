@@ -1,4 +1,6 @@
+using Cartwell.Common.Triggers;
 using Cartwell.Common.Types.Models;
+using Laraue.EfCoreTriggers.Common.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cartwell.Common.Configs;
@@ -30,5 +32,10 @@ public static class EntityConfig
 									.HasDefaultValueSql("CURRENT_TIMESTAMP")
 									.ValueGeneratedOnAddOrUpdate();
 					});
+	}
+
+	public static void ConfigureCartwellTriggers(this ModelBuilder modelBuilder)
+	{
+		modelBuilder.AddGenericTrigger(new CreatedAtImmutabilityTrigger());
 	}
 }

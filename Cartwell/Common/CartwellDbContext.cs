@@ -17,6 +17,8 @@ public class CartwellDbContext(
 		modelBuilder.ApplyEntityTimestamps();
 
 		base.OnModelCreating(modelBuilder);
+
+		modelBuilder.ConfigureCartwellTriggers();
 	}
 
 	public override int SaveChanges(bool acceptAllChangesOnSuccess)

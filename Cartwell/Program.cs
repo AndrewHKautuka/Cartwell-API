@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Cartwell.Common;
 using Cartwell.Common.Configs;
 using Cartwell.Common.DocumentTransformers;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Json;
 using NodaTime;
@@ -41,6 +42,14 @@ if (!isBuildTimeOpenApiGeneration)
 	{
 		options.UseConfiguredDbContext(primaryConnectionString);
 	});
+
+	builder.Services.AddHealthChecksUI(setup =>
+		   {
+			   setup.SetEvaluationTimeInSeconds(300); // how often the UI polls
+			   setup.MaximumHistoryEntriesPerEndpoint(50);
+			   setup.AddHealthCheckEndpoint("API", "/health/ready"); // the endpoint it polls
+		   })
+		   .AddInMemoryStorage();
 }
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -89,7 +98,13 @@ app.MapHealthChecks("/health",
 app.MapHealthChecks("/health/ready",
 					new HealthCheckOptions
 					{
-						Predicate = check => check.Tags.Contains("ready")
+						Predicate = check => check.Tags.Contains("ready"),
+						ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 					});
+
+if (!isBuildTimeOpenApiGeneration)
+{
+	app.MapHealthChecksUI(options => options.UIPath = "/health-ui");
+}
 
 await app.RunAsync();

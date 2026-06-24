@@ -60,6 +60,15 @@ Replaces xUnit's built-in `Assert.*` calls with a natural-language assertion cha
 
 A realistic fake data generator. Rather than scattering `"test"`, `"foo@example.com"`, and `123` throughout test setup, Bogus generates contextually appropriate values (`faker.Internet.Email()`, `faker.Address.City()`, `faker.Commerce.ProductName()`). This matters because some bugs only appear with inputs that approximate real-world shape — e.g. validation logic that accidentally passes `"test"` but would correctly reject a real name containing an accent character.
 
+### `NodaTime.Testing` / `Microsoft.Extensions.TimeProvider.Testing`
+
+Any code that reads the current time from a static source (`SystemClock.Instance`, `DateTime.UtcNow`, `DateTimeOffset.UtcNow`) is non-deterministic. Tests depending on the real clock can fail at day or month boundaries, behave differently under DST offsets, and cannot deliberately test time-sensitive scenarios such as token expiry, scheduling windows, or audit timestamp ordering. The fix is the clock injection pattern: services depend on an injected abstraction rather than a static call, and tests supply a controlled fake. Which package you need depends on which time abstraction your project uses:
+
+- **NodaTime projects** — `NodaTime.Testing` provides `FakeClock`, which implements NodaTime's `IClock` interface. Inject `IClock` into services, resolve `SystemClock.Instance` from DI in production, and supply `new FakeClock(Instant.FromUtc(...))` in tests.
+- **.NET 8+ projects not using NodaTime** — `Microsoft.Extensions.TimeProvider.Testing` provides `FakeTimeProvider`, which implements the built-in `TimeProvider` abstract class. This is the correct reach rather than a custom `IDateTimeProvider` interface. ASP.NET Core's own infrastructure — including JWT bearer validation — consumes `TimeProvider` from DI as of .NET 8, so a registered `FakeTimeProvider` also controls token expiry behaviour in integration tests without any additional wiring.
+
+Both apply at two levels: unit tests inject the fake directly into the constructor, and integration tests register it in `ConfigureTestServices` so the entire application uses it for the duration of the run. See the unit testing and integration testing sections for usage examples.
+
 ### `FsCheck` and `FsCheck.Xunit`
 
 A property-based testing library. Covered in depth in the FsCheck section below. `FsCheck.Xunit` provides the `[Property]` attribute that integrates property tests into the xUnit runner.
@@ -121,6 +130,91 @@ public void SetQuantity_WhenNotPositive_ThrowsArgumentException(int quantity)
 ```
 
 **Shared setup** — use xUnit's constructor for per-test setup (xUnit creates a new instance per test method), `IClassFixture<T>` for setup shared across all tests in one class, and `[Collection]` when multiple test classes need the same shared state.
+
+### Testing time-dependent code
+
+Services that depend on the current time must receive it through an injected abstraction. Never call `SystemClock.Instance`, `DateTime.UtcNow`, or `DateTimeOffset.UtcNow` directly inside a class under test — there is no way to control or assert against those values from a test.
+
+**NodaTime projects** — inject `IClock` and provide `FakeClock` in tests:
+
+```csharp
+// Production registration (in Program.cs or a service extension)
+services.AddSingleton<IClock>(SystemClock.Instance);
+
+// Service constructor
+public class TokenService(IClock clock, ITokenRepository repo)
+{
+    public bool IsExpired(Token token) =>
+        clock.GetCurrentInstant() > token.ExpiresAt;
+}
+
+// Unit test
+[Fact]
+public void IsExpired_WhenPastExpiry_ReturnsTrue()
+{
+    var expiry = Instant.FromUtc(2024, 6, 1, 12, 0, 0);
+    var clock  = new FakeClock(expiry + Duration.FromMinutes(1));
+    var repo   = Substitute.For<ITokenRepository>();
+    var svc    = new TokenService(clock, repo);
+
+    svc.IsExpired(new Token { ExpiresAt = expiry }).Should().BeTrue();
+}
+
+// Test that advances time explicitly
+[Fact]
+public void IsExpired_BeforeAndAfterExpiry_ChangesState()
+{
+    var expiry = Instant.FromUtc(2024, 6, 1, 12, 0, 0);
+    var clock  = new FakeClock(expiry - Duration.FromSeconds(1));
+    var svc    = new TokenService(clock, Substitute.For<ITokenRepository>());
+
+    svc.IsExpired(new Token { ExpiresAt = expiry }).Should().BeFalse();
+
+    clock.Advance(Duration.FromSeconds(2));
+
+    svc.IsExpired(new Token { ExpiresAt = expiry }).Should().BeTrue();
+}
+```
+
+**.NET 8+ projects without NodaTime** — inject `TimeProvider` and provide `FakeTimeProvider` in tests:
+
+```csharp
+// Production registration
+services.AddSingleton(TimeProvider.System);
+
+// Service constructor
+public class TokenService(TimeProvider time, ITokenRepository repo)
+{
+    public bool IsExpired(Token token) =>
+        time.GetUtcNow() > token.ExpiresAt;
+}
+
+// Unit test
+[Fact]
+public void IsExpired_WhenPastExpiry_ReturnsTrue()
+{
+    var expiry      = new DateTimeOffset(2024, 6, 1, 12, 0, 0, TimeSpan.Zero);
+    var timeProvider = new FakeTimeProvider(expiry + TimeSpan.FromMinutes(1));
+    var svc         = new TokenService(timeProvider, Substitute.For<ITokenRepository>());
+
+    svc.IsExpired(new Token { ExpiresAt = expiry }).Should().BeTrue();
+}
+```
+
+In integration tests, register the fake in `ConfigureTestServices` and expose it from the factory so individual tests can advance the clock and assert on time-sensitive behaviour:
+
+```csharp
+// Expose from ApiFactory
+public FakeClock Clock { get; } = new FakeClock(Instant.FromUtc(2024, 1, 1, 0, 0, 0));
+
+// In ConfigureWebHost
+services.AddSingleton<IClock>(factory.Clock);
+
+// In a test
+factory.Clock.Advance(Duration.FromDays(31));
+var response = await _client.GetAsync("/subscriptions/status");
+// now assert on what happens after a month has passed
+```
 
 ---
 

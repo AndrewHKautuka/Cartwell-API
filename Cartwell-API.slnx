@@ -4,6 +4,7 @@
     <File Path=".env"/>
     <File Path=".env.example"/>
     <File Path="compose.yaml"/>
+    <File Path="Directory.Build.props"/>
   </Folder>
   <Project Path="Cartwell.Tests/Cartwell.Tests.csproj"/>
   <Project Path="Cartwell/Cartwell.csproj"/>

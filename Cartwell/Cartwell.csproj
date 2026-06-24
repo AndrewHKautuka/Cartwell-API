@@ -6,17 +6,40 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <OpenApiDocumentsDirectory>./.openapi/</OpenApiDocumentsDirectory>
+    <UserSecretsId>37ec232d-f2c8-416c-b343-e6b14dd58ec3</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0"/>
+    <PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0"/>
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0"/>
+    <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0"/>
+    <PackageReference Include="Humanizer.Core" Version="3.0.10"/>
+    <PackageReference Include="Laraue.EfCoreTriggers.PostgreSql" Version="10.4.0"/>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.9"/>
     <PackageReference Include="MMonrad.OpenApi.NodaTime" Version="0.0.27"/>
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0"/>
     <PackageReference Include="NodaTime" Version="3.3.2"/>
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.4.0"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.2"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.2"/>
     <PackageReference Include="Scalar.AspNetCore" Version="2.16.3"/>
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.1"/>
   </ItemGroup>

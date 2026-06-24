@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
+    <File Path=".env" />
+    <File Path=".env.example" />
     <File Path="compose.yaml" />
   </Folder>
   <Project Path="Cartwell/Cartwell.csproj" />

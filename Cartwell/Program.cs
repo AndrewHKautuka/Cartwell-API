@@ -1,6 +1,11 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Cartwell.Common;
+using Cartwell.Common.Configs;
 using Cartwell.Common.DocumentTransformers;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Json;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
@@ -8,6 +13,13 @@ using OpenApi.NodaTime.Extensions;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var isBuildTimeOpenApiGeneration = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+
+var primaryConnectionString = builder.Configuration.GetConnectionString("Primary");
+
+// Static Configs
+LaraueTriggerConfig.ConfigureNamingStrategy();
 
 // Add services to the container.
 // Singletons
@@ -19,7 +31,30 @@ builder.Services.AddControllers()
 		   options.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 	   });
 
-builder.Services.AddHealthChecks();
+var healthChecksBuilder = builder.Services.AddHealthChecks();
+
+if (!isBuildTimeOpenApiGeneration)
+{
+	healthChecksBuilder.AddNpgSql(primaryConnectionString!,
+								  name: "postgresql",
+								  tags: ["db", "postgres", "ready"])
+					   .AddDbContextCheck<CartwellDbContext>("cartwell-dbcontext",
+															 tags: ["db", "ef", "ready"]);
+
+	builder.Services.AddDbContext<CartwellDbContext>(options =>
+	{
+		options.UseConfiguredDbContext(primaryConnectionString);
+	});
+
+	builder.Services.AddHealthChecksUI(setup =>
+		   {
+			   setup.SetEvaluationTimeInSeconds(300); // how often the UI polls
+			   setup.MaximumHistoryEntriesPerEndpoint(50);
+			   setup.AddHealthCheckEndpoint("API", "/health/ready"); // the endpoint it polls
+		   })
+		   .AddInMemoryStorage();
+}
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi("v1",
 							options =>
@@ -57,6 +92,22 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health",
+					new HealthCheckOptions
+					{
+						Predicate = _ => false // no dependency checks, just "is the process up"
+					});
+
+app.MapHealthChecks("/health/ready",
+					new HealthCheckOptions
+					{
+						Predicate = check => check.Tags.Contains("ready"),
+						ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+					});
+
+if (!isBuildTimeOpenApiGeneration)
+{
+	app.MapHealthChecksUI(options => options.UIPath = "/health-ui");
+}
 
 await app.RunAsync();

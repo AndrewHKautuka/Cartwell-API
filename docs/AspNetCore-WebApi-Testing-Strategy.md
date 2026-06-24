@@ -72,6 +72,14 @@ Provides `WebApplicationFactory<T>`, which boots your actual `Program.cs` in-pro
 
 Spins up a real PostgreSQL instance in Docker during test execution. Essential for anything that touches EF Core with a PostgreSQL-specific provider, because behaviours that only exist at the database level (triggers, generated columns, certain constraint types, full-text search, geospatial functions) are invisible to EF Core's in-memory and SQLite providers. The in-memory provider in particular gives false green tests that hide real bugs.
 
+As of Testcontainers 4.10.0, the parameterless `PostgreSqlBuilder()` constructor is obsolete. You must now pass the image string directly to the constructor — see the integration testing section for the correct usage. This change was intentional: the old approach bundled a default image version that went stale over time, but updating it was a breaking change for consumers. The new API makes version pinning explicit and mandatory, which aligns with Testcontainers' own best-practice guidance to always pin the image version.
+
+### `Testcontainers.Xunit` / `Testcontainers.XunitV3`
+
+Optional packages that provide `ContainerTest<TBuilderEntity, TContainerEntity>` and `ContainerFixture<TBuilderEntity, TContainerEntity>` base classes, reducing the boilerplate of managing container lifecycle in xUnit tests. Instead of implementing `IAsyncLifetime` manually and wiring up start/stop in `InitializeAsync`/`DisposeAsync`, you inherit from one of these classes and override a `Configure()` method to provide the builder. Use `Testcontainers.Xunit` for xUnit v2 and `Testcontainers.XunitV3` for xUnit v3.
+
+These are not needed when using `WebApplicationFactory<T>` — the factory already manages its own lifecycle via `IAsyncLifetime`. They are most useful for simpler test projects that use Testcontainers directly without a full `WebApplicationFactory` wrapper, such as data-layer tests that want a real database but don't need the HTTP pipeline.
+
 ### `Respawn`
 
 Efficiently resets database state between tests by truncating only the tables that were written to, rather than recreating the schema or the container. This is what makes it practical to run integration tests at any useful volume without multi-minute startup times.
@@ -127,8 +135,7 @@ This boots your real `Program.cs` in-process. You replace specific services (the
 ```csharp
 public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _db = new PostgreSqlBuilder()
-        .WithImage("postgres:16")   // use postgis/postgis:16-3.4 if you need PostGIS
+    private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgres:17")
         .Build();
 
     public NpgsqlConnection DbConnection { get; private set; } = null!;
@@ -166,6 +173,28 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     }
 }
 ```
+
+### Choosing a container image
+
+Always pass the image string to the `PostgreSqlBuilder` constructor and pin a specific version. The `latest` tag is explicitly discouraged by Testcontainers' own best-practice documentation — it introduces flakiness as the tag drifts and removes reproducibility from your test runs.
+
+**Plain PostgreSQL.** The `postgres:17-alpine` variant is a reasonable default for test containers. Alpine images are 50–80 MB compressed versus 150–200 MB for the Debian-based default, which meaningfully reduces cold-start time in clean CI environments that don't cache Docker layers between runs. If your CI does cache layers, the difference is negligible after the first pull. The Testcontainers wait strategy uses `pg_isready`, which is present in alpine variants, so there are no compatibility issues.
+
+```csharp
+// Debian (default, slightly larger)
+private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgres:17").Build();
+
+// Alpine (smaller image, otherwise equivalent for test use)
+private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgres:17-alpine").Build();
+```
+
+**PostGIS.** The `postgis/postgis` image now provides both Debian and Alpine variants (e.g. `postgis/postgis:17-3.5` and `postgis/postgis:17-3.5-alpine`). For test containers the alpine variant works, but the Debian variant is more widely tested across PostGIS tooling and has a longer track record. Unless image pull time is a measurable pain point, prefer the Debian variant for PostGIS:
+
+```csharp
+private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgis/postgis:17-3.5").Build();
+```
+
+Note that when using the PostGIS image, you still need to call `UseNetTopologySuite()` on the Npgsql options in `ConfigureTestServices`, as that is a client-side configuration independent of which server image you use.
 
 ### Sharing the factory across test classes
 

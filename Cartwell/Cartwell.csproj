@@ -10,38 +10,38 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0"/>
-    <PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0"/>
-    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0"/>
-    <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0"/>
-    <PackageReference Include="Humanizer.Core" Version="3.0.10"/>
-    <PackageReference Include="Laraue.EfCoreTriggers.PostgreSql" Version="10.4.0"/>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql"/>
+    <PackageReference Include="AspNetCore.HealthChecks.UI"/>
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client"/>
+    <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage"/>
+    <PackageReference Include="Humanizer.Core"/>
+    <PackageReference Include="Laraue.EfCoreTriggers.PostgreSql"/>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.9">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.9"/>
-    <PackageReference Include="MMonrad.OpenApi.NodaTime" Version="0.0.27"/>
-    <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0"/>
-    <PackageReference Include="NodaTime" Version="3.3.2"/>
-    <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.4.0"/>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2"/>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.2"/>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.2"/>
-    <PackageReference Include="Scalar.AspNetCore" Version="2.16.5"/>
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3"/>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore"/>
+    <PackageReference Include="MMonrad.OpenApi.NodaTime"/>
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON"/>
+    <PackageReference Include="NodaTime"/>
+    <PackageReference Include="NodaTime.Serialization.SystemTextJson"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime"/>
+    <PackageReference Include="Scalar.AspNetCore"/>
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI"/>
   </ItemGroup>
 
   <ItemGroup>

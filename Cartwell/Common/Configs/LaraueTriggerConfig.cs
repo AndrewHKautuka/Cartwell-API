@@ -16,7 +16,8 @@ public static class LaraueTriggerConfig
 	/// </summary>
 	public static void ConfigureNamingStrategy()
 	{
-		if (_isConfigured) return; // or throw if you want strict single configuration
+		if (_isConfigured)
+			return; // or throw if you want strict single configuration
 
 		Laraue.Linq2Triggers.Core.Constants.AnnotationKey = "trigger_";
 		Laraue.Linq2Triggers.Core.Constants.GetTriggerName = (triggerTime, triggerEvent, triggerEntityType) =>

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using NodaTime;
+using NodaTime.Testing;
 using Npgsql;
 using Testcontainers.PostgreSql;
 
@@ -42,6 +44,15 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 			services.RemoveAll<DbContextOptions<CartwellDbContext>>();
 			services.AddDbContext<CartwellDbContext>(o =>
 														 o.UseConfiguredDbContext(_db.GetConnectionString()));
+
+			var fakeClock = new FakeClock(Instant.FromUtc(2026,
+														  1,
+														  1,
+														  0,
+														  0));
+
+			services.RemoveAll<IClock>();
+			services.AddSingleton<IClock>(fakeClock);
 		});
 	}
 }

@@ -8,4 +8,13 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      Suppressing KubernetesClient vulnerability from AspNetCore.HealthChecks.UI.
+      We do not use Kubernetes features/probes in this project, so the code path is dead.
+      Upgrading KubernetesClient causes the parent health check library to fail at runtime.
+    -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-w7r3-mgwf-4mqq"/>
+  </ItemGroup>
 </Project>

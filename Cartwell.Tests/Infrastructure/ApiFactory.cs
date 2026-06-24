@@ -15,12 +15,14 @@ namespace Cartwell.Tests.Infrastructure;
 
 public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-	private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgis/postgis:16-3.4-alpine").Build();
+	private readonly PostgreSqlContainer? _db = new PostgreSqlBuilder("postgis/postgis:16-3.4-alpine").Build();
 
 	public NpgsqlConnection DbConnection { get; private set; } = null!;
 
 	public async Task InitializeAsync()
 	{
+		ArgumentNullException.ThrowIfNull(_db);
+
 		await _db.StartAsync();
 		DbConnection = new NpgsqlConnection(_db.GetConnectionString());
 		await DbConnection.OpenAsync();
@@ -34,11 +36,16 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 	public new async Task DisposeAsync()
 	{
 		await DbConnection.DisposeAsync();
-		await _db.StopAsync();
+		if (_db is not null)
+		{
+			await _db.StopAsync();
+		}
 	}
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{
+		ArgumentNullException.ThrowIfNull(_db);
+
 		builder.ConfigureTestServices(services =>
 		{
 			services.RemoveAll<DbContextOptions<CartwellDbContext>>();

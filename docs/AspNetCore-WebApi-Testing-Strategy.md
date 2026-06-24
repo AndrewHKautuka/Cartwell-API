@@ -52,9 +52,44 @@ This removes a persistent mental layer-shift and makes test code read more like 
 
 The second reason is historical trust. In 2023, Moq introduced SponsorLink, a package that silently scanned developer environments during build and transmitted email addresses to a third-party service. The feature was removed after significant community backlash, but the episode demonstrated that maintainer priorities could diverge from user interests in ways that are difficult to audit. NSubstitute has no equivalent history.
 
-### `FluentAssertions`
+### `AwesomeAssertions`
 
-Replaces xUnit's built-in `Assert.*` calls with a natural-language assertion chain (`result.Should().Be(...)`, `act.Should().Throw<...>()`). The primary practical benefit is failure messages: FluentAssertions produces verbose, structured output that immediately tells you what was expected and what was actually received, which cuts debugging time significantly.
+AwesomeAssertions is a community-controlled fork of FluentAssertions, recommended over FluentAssertions itself for any new project. Three meaningful options exist, each with a different trade-off, and the choice is worth making deliberately.
+
+**FluentAssertions v7** stays on Apache 2.0 permanently and will receive bug fixes indefinitely. However, it receives no new features — it is a maintained snapshot. Choosing it means accepting permanent feature freeze relative to where the library stood at v7.
+
+**AwesomeAssertions** is the living continuation. It forked legally from the Apache 2.0 codebase before the FluentAssertions v8 licence change, is now at v9.x, has six named maintainers, commits to Apache 2.0 permanently, and has 5.4 million downloads and growing. Migration from FluentAssertions v7 is a single package reference change with no code changes whatsoever, because AwesomeAssertions retains the `FluentAssertions` namespace by right under the Apache 2.0 licence. All `.Should()` syntax in code examples throughout this document is equally valid for both packages.
+
+**Shouldly** is a different philosophy. Instead of chaining off `.Should()`, it puts assertions directly on the value: `value.ShouldBe(expected)`, `Should.Throw<ArgumentException>(() => act())`. It is BSD-3-Clause, has 111 million downloads, and is actively maintained with no licence history of concern. Its meaningful weakness is a shallower `ShouldBeEquivalentTo` — no member exclusion rules, no structural comparison configuration — which makes it less convenient when asserting against complex domain or response objects. It also has no Roslyn analyser package.
+
+For Web API projects where you will frequently compare domain object graphs and HTTP response bodies, AwesomeAssertions is the better fit. If your assertion needs are straightforward and licence conservatism is the priority, Shouldly is a completely sound choice.
+
+**What AwesomeAssertions gives you** is a natural-language assertion chain that replaces xUnit's `Assert.*` calls. The practical benefit is failure messages: it produces verbose, structured output that immediately shows what was expected and what was received:
+
+```csharp
+order.Total.Should().BeGreaterThan(0);
+response.Should().BeEquivalentTo(expected, o => o.Excluding(x => x.CreatedAt));
+act.Should().ThrowAsync<DomainException>().WithMessage("*out of stock*");
+```
+
+### `AwesomeAssertions.Analyzers`
+
+Roslyn analyzers that enforce correct AwesomeAssertions usage at compile time, with auto-fixes. They catch anti-patterns such as `collection.Count().Should().Be(3)` (should be `HaveCount(3)`) and `result.Should().Be(true)` (should be `BeTrue()`). Add this to every test project — it enforces best practices without requiring the full API surface to be memorised. It ships under MIT and carries `PrivateAssets="all"` so it does not leak into production output:
+
+```xml
+<PackageReference Include="AwesomeAssertions.Analyzers">
+  <PrivateAssets>all</PrivateAssets>
+  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+</PackageReference>
+```
+
+### `AwesomeAssertions.Web`
+
+Provides assertion methods directly on `HttpResponseMessage`, including typed response body deserialisation and rich failure output containing the full HTTP request and response detail. Reduces boilerplate in integration test projects that make many HTTP-level assertions. Uses `System.Text.Json` by default. Add to integration test projects only.
+
+### `AwesomeAssertions.AspNetCore.Mvc`
+
+Adds assertions on `IActionResult` and `ActionResult<T>` return types for testing controllers as plain classes via direct method calls, without going through the HTTP pipeline. Only relevant if you write controller unit tests in addition to integration tests; it has no value if controller coverage is handled entirely through `WebApplicationFactory`. Pull in only when you have a concrete need for it.
 
 ### `Bogus`
 

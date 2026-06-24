@@ -59,6 +59,8 @@ See `docs/logging_best_practices.md` for the full pattern, before/after examples
 
 `AddInMemoryStorage()` is used for the HealthChecks UI backing store, meaning history is lost on every restart. This is intentional for the MVP. Replace with a PostgreSQL-backed store (`AddPostgreSqlStorage`) once the schema is stable and operational visibility becomes a requirement.
 
+See also §7 for a broader concern about whether the UI should be hosted inside the API at all.
+
 ## 6. Configuration — What Goes Where
 
 The project uses several configuration mechanisms that serve different purposes and must not be conflated.
@@ -97,3 +99,28 @@ The project uses several configuration mechanisms that serve different purposes 
 - The connection string lives in User Secrets locally but must be injected as an environment variable in production. Ensure `Program.cs` always reads it via `IConfiguration` and never has a hardcoded fallback.
 - `.env` and User Secrets are entirely separate — the connection string in User Secrets is for the app process; the password in `.env` is for the Docker Compose database container. They must be kept consistent manually. If the password in `.env` changes, the User Secrets connection string must also be updated. The same applies to `POSTGRES_PORT` — if the host port is changed in `.env`, the port in the User Secrets connection string must match.
 - As the project grows (external APIs, email providers, payment gateways), each new secret needs a `secrets.example.json` entry and a corresponding User Secrets entry for local dev — establish this as the convention from the first addition.
+
+## 7. HealthChecks UI — Hosted Inside the API (SRP Violation)
+
+The API currently hosts the full `AspNetCore.HealthChecks.UI` visual dashboard at `/health-ui`. This is the root cause of the `KubernetesClient` transitive dependency (and its associated `NU1902` vulnerability warning suppressed in `Directory.Build.props`): the UI package includes Kubernetes service-discovery features, which pull in the vulnerable SDK regardless of whether those features are used.
+
+**Why this matters architecturally**: hosting a visual dashboard inside a Web API breaks the Single Responsibility Principle. The API's job is to expose structured data; rendering a frontend and running a background polling worker is a separate concern. In production environments, health dashboards are typically served by a dedicated tool (Grafana, Datadog, a standalone HealthChecks UI project, etc.) that scrapes the JSON endpoint the API already exposes at `/health/ready` via `UIResponseWriter`.
+
+**Current state (Option A — suppression)**: the vulnerability is suppressed via `<NuGetAuditSuppress>` in `Directory.Build.props`. The dead code path justification is valid for now because Kubernetes probes are not used, but the suppression is a workaround, not a fix.
+
+**Target state (Option B — remove the UI footprint)**:
+1. Remove `AspNetCore.HealthChecks.UI` and `AspNetCore.HealthChecks.UI.InMemory.Storage` from `Cartwell.csproj`. Keep `AspNetCore.HealthChecks.UI.Client` — it provides only `UIResponseWriter` and carries no problematic dependencies.
+2. Delete the UI registration and mapping blocks from `Program.cs`:
+   ```csharp
+   // Remove:
+   builder.Services.AddHealthChecksUI(setup => ...).AddInMemoryStorage();
+   // Remove:
+   app.MapHealthChecksUI(options => options.UIPath = "/health-ui");
+   ```
+3. Remove the `<NuGetAuditSuppress>` entry from `Directory.Build.props` — it will no longer be needed.
+4. The `/health/ready` JSON endpoint remains fully intact and is sufficient for any external monitoring tool.
+
+**Concerns to watch**:
+- The suppression in `Directory.Build.props` should be treated as a reminder, not a permanent fixture — revisit it whenever `AspNetCore.HealthChecks.UI` is upgraded or removed.
+- If a visual dashboard is wanted locally during development, spin up a standalone HealthChecks UI project or use a tool like Grafana against the JSON endpoint rather than embedding it in the API process.
+- Completing Option B also resolves §5 (in-memory storage) as a side effect, since `AddInMemoryStorage()` goes away with the UI registration.
